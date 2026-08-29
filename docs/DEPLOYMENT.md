@@ -111,6 +111,32 @@ nothing and cost the build on one of the three major platforms.
 To change it: edit the PNG, or regenerate it from JSX on macOS or Linux and
 commit the result.
 
+## Keeping Next.js patched
+
+Vercel refuses to deploy a Next.js version with a known critical advisory, and
+the message arrives *after* "Build Completed" — the build succeeds and the
+deployment is rejected at the end. It reads:
+
+```
+Vulnerable version of Next.js detected, please update immediately.
+```
+
+MUTUA tracks the **15.x Maintenance LTS** line, which is where security patches
+for Next 15 land. Check the current one and upgrade in place:
+
+```bash
+npm view next dist-tags        # "backport" is the maintained 15.x release
+npm install next@<version> eslint-config-next@<version>
+npm install react@latest react-dom@latest
+npm run verify
+```
+
+Staying inside 15.x avoids the migration cost of Next 16 for a prototype whose
+whole point is elsewhere. Nothing in this codebase depends on a 15.5-specific
+API, so moving to the 16.x Active LTS is also a small change if you prefer it —
+`next lint` is the one thing that goes away, and the deprecation notice already
+prints the codemod that replaces it.
+
 ## Self-hosting instead
 
 ```bash

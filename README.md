@@ -212,7 +212,7 @@ judge. No environment variables, no secrets, nothing to configure. See
 
 ## Stack
 
-Next.js 15 · React 19 · TypeScript · Zustand · Zod · Tailwind CSS · WebMCP ·
+Next.js 15 (Maintenance LTS) · React 19 · TypeScript · Zustand · Zod · Tailwind CSS · WebMCP ·
 LocalStorage · Vercel. No backend, no ML, no external API on the golden path.
 
 ## What this is not
