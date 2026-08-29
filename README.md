@@ -170,7 +170,7 @@ unregistered capability refuses it exactly as it would refuse an external agent.
 ## Project structure
 
 ```
-app/          landing page · /workspace · social card
+app/          landing page · /workspace
 components/   current-state · decision · capabilities · timeline · agent
 domain/       types, constants, planning rules, selectors
 engines/      derive · simulation · constraint · proposal · diff · comparison · planner

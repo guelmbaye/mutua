@@ -7,7 +7,7 @@ environment variables, no secrets. Both routes prerender at build time.
 Route                    Size      First load JS
 /                        4.8 kB    123 kB     landing page
 /workspace              39.5 kB    157 kB     the product
-/opengraph-image           —         —        social card, generated at build
+/og.png                    —         —        social card, a static asset
 ```
 
 ## Before you deploy
@@ -80,7 +80,7 @@ Run through this once on the production URL, in a fresh browser profile:
 - [ ] The golden path in [`TESTING.md`](TESTING.md) runs end to end
 - [ ] **Reset demo** restores the baseline
 - [ ] `?debug=1` shows the tool call log
-- [ ] The social card resolves at `/opengraph-image`
+- [ ] The social card resolves at `/og.png`, and a link preview renders
 
 Then hard-refresh and run the sequence a second time. LocalStorage persists
 between visits under `mutua.workspace.v1`, and a judge should never inherit your
@@ -90,7 +90,26 @@ first load of a clean profile shows the healthy baseline.
 ## Custom domain
 
 **Project → Settings → Domains → Add.** Vercel issues the certificate. Nothing
-in the application hardcodes a hostname.
+in the application hardcodes a hostname: social-card URLs resolve from
+`VERCEL_URL` on every deployment. Once a custom domain is live, set
+`NEXT_PUBLIC_SITE_URL` to it in **Settings → Environment Variables** so previews
+point at the stable host rather than the deployment URL. Everything else works
+without it.
+
+## The social card
+
+`public/og.png` is a checked-in asset rather than a generated route.
+
+`next/og` renders through a bundled WebAssembly build of Satori, which resolves
+its font and wasm files by joining a relative path onto `import.meta.url`. On
+Windows that produces an invalid file URL and `next build` fails while
+prerendering the image
+([vercel/next.js#77164](https://github.com/vercel/next.js/issues/77164)). The
+card is fixed text on a fixed background, so generating it on every build bought
+nothing and cost the build on one of the three major platforms.
+
+To change it: edit the PNG, or regenerate it from JSX on macOS or Linux and
+commit the result.
 
 ## Self-hosting instead
 
