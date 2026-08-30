@@ -38,7 +38,7 @@ npm run start
 ```bash
 npm run typecheck   # TypeScript, no emit
 npm run lint        # ESLint (next/core-web-vitals)
-npm run test        # Vitest — 31 tests
+npm run test        # Vitest — 37 tests
 ```
 
 `npm run test` is the fastest way to verify the claims in this submission
@@ -51,6 +51,7 @@ without touching the interface. It covers:
 | `tests/proposal.test.ts` | A proposal never mutates canonical state; locked entities reject mutation |
 | `tests/capability.test.ts` | The registry really registers and unregisters; an unregistered tool refuses the call |
 | `tests/golden-flow.test.ts` | The complete demo, human actions through the store and agent actions through the WebMCP registry |
+| `tests/webmcp-host.test.ts` | MUTUA against a host implementing only what the WebMCP specification promises |
 
 `tests/golden-flow.test.ts` is the one to read. It runs the whole submission in
 about sixty milliseconds and asserts the exact final numbers.

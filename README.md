@@ -61,7 +61,7 @@ No backend, no account, no environment variable.
 ```bash
 npm run typecheck
 npm run lint
-npm run test         # 31 tests, including the full golden flow through the real registry
+npm run test         # 37 tests, including the golden flow and a WebMCP host conformance suite
 npm run build
 ```
 
@@ -181,7 +181,7 @@ store/        the one shared Zustand store + local persistence
 webmcp/       capability map · registry · lifecycle · schemas · 12 tools
 agent/        built-in fallback agent
 demo/         baseline dataset · golden scenarios · reset
-tests/        calibration · simulation · proposal · capability · golden flow
+tests/        calibration · simulation · proposal · capability · golden flow · webmcp host
 ```
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the data flow and the
