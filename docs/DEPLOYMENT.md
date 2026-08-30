@@ -74,12 +74,15 @@ is above the fold in both the header and the hero.
 
 Run through this once on the production URL, in a fresh browser profile:
 
+- [ ] The URL is the production domain, not a generated deployment URL
+- [ ] It loads in a **private window** without a Vercel login screen
 - [ ] `/` renders, and **Launch demo** reaches `/workspace`
 - [ ] `/workspace` loads the baseline with no console errors
 - [ ] The Capability Inspector populates — the registry synced
 - [ ] The golden path in [`TESTING.md`](TESTING.md) runs end to end
 - [ ] **Reset demo** restores the baseline
 - [ ] `?debug=1` shows the tool call log
+- [ ] `og:image` in the page source points at the production domain
 - [ ] The social card resolves at `/og.png`, and a link preview renders
 
 Then hard-refresh and run the sequence a second time. LocalStorage persists
@@ -87,14 +90,35 @@ between visits under `mutua.workspace.v1`, and a judge should never inherit your
 rehearsal state — **Reset demo** clears it, but it is worth confirming that the
 first load of a clean profile shows the healthy baseline.
 
+## Two URLs, and only one of them works
+
+Every deployment gets a generated URL like
+`mutua-lo6l9t9e5-guelmbaye.vercel.app`. That one is **not** the URL to share.
+
+Vercel's Standard Deployment Protection gates preview deployments *and* the
+generated production URLs behind a Vercel login, leaving only the project's
+production domain public. A judge opening a generated URL sees a Vercel sign-in
+page, not MUTUA.
+
+The production domain is under **Project → Settings → Domains** — short, no
+deployment hash. That is the one to submit.
+
+Test it in a **private window**. Your own browser is already signed into Vercel
+and passes the check silently, so a normal tab will show you a site that nobody
+else can reach.
+
+The same trap catches social cards: `metadataBase` resolves from
+`VERCEL_PROJECT_PRODUCTION_URL`, which is the production domain and is set even
+on preview builds, rather than `VERCEL_URL`, which points at the gated generated
+URL. Pointing an `og:image` at a protected host returns 401 to every crawler and
+the preview silently disappears.
+
 ## Custom domain
 
 **Project → Settings → Domains → Add.** Vercel issues the certificate. Nothing
-in the application hardcodes a hostname: social-card URLs resolve from
-`VERCEL_URL` on every deployment. Once a custom domain is live, set
-`NEXT_PUBLIC_SITE_URL` to it in **Settings → Environment Variables** so previews
-point at the stable host rather than the deployment URL. Everything else works
-without it.
+in the application hardcodes a hostname. Once a custom domain is live, set
+`NEXT_PUBLIC_SITE_URL` to it in **Settings → Environment Variables** so cards
+resolve from the domain you want people to see.
 
 ## The social card
 

@@ -233,6 +233,36 @@ Eight frames are checked in at [`docs/screenshots/`](screenshots/), captured at
    after approval.
    *Human approval changes the WebMCP capability surface.*
 
+## Devpost submission form
+
+Everything the form asks for, mapped to what exists in this repository.
+
+**Project name** — MUTUA (specific, not generic; the rules call this out).
+
+**Live URL** — the deployed `/workspace` route. Must open in ChatGPT's in-app
+browser or Chrome 149+ with `chrome://flags/#enable-webmcp-testing` enabled. No
+authentication, so no credentials to supply.
+
+**Text description** — must cover four points. Use these sections above:
+
+| Required point | Where |
+|---|---|
+| Why the use case fits WebMCP | *Inspiration* and *How we used WebMCP* |
+| How it creates a better user experience | *What it does* |
+| What people and agents can do together that was hard or impossible before | *The four primitives* and *Accomplishments* |
+| How WebMCP was implemented | *How we used WebMCP* and *How we built it* |
+
+**Demo video** — under three minutes, public on YouTube, **with audio** covering
+what was built and how WebMCP was used. Script and timings in
+[`DEMO-SCRIPT.md`](DEMO-SCRIPT.md).
+
+**Public repository** — <https://github.com/guelmbaye/mutua>, with an
+open-source licence that GitHub detects and shows in the About panel. `LICENSE`
+is MIT at the repository root, which satisfies this.
+
+**Built with** — next.js, react, typescript, webmcp, zustand, zod, tailwindcss,
+vitest, vercel.
+
 ## Pre-submission checklist
 
 **Product**
@@ -243,8 +273,11 @@ Eight frames are checked in at [`docs/screenshots/`](screenshots/), captured at
 - [ ] Comparison, approval, commit and reset all work
 
 **WebMCP**
-- [ ] Real registration against the host, verified in `?debug=1`
-- [ ] `commit_proposal` absent before approval, present after
+- [ ] Live URL opens and registers tools in ChatGPT's in-app browser
+- [ ] Live URL opens and registers tools in Chrome 149+ with the testing flag
+- [ ] `document.modelContext.getTools()` lists the phase's capabilities
+- [ ] `commit_proposal` absent from `getTools()` before approval, present after
+- [ ] `Origin-Agent-Cluster: ?1` present on the deployed response headers
 - [ ] Handler guardrails verified independently of registration
 - [ ] Tool schemas valid
 
@@ -259,6 +292,8 @@ Eight frames are checked in at [`docs/screenshots/`](screenshots/), captured at
 - [ ] Public repository — <https://github.com/guelmbaye/mutua>
 - [ ] README, architecture doc, WebMCP tool reference, testing instructions
 - [ ] Five screenshots with captions
-- [ ] Video under three minutes, English narration
+- [ ] Video under three minutes, public on YouTube, audio covering what was built and how WebMCP was used
 - [ ] Technologies listed accurately
 - [ ] All materials in English
+- [ ] `LICENSE` visible in the GitHub About panel
+- [ ] Nothing touched after the deadline — not the submission, not the repo, not the live site

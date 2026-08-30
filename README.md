@@ -162,8 +162,11 @@ interface, and to the human.
 Not all twelve exist at once. See [`docs/WEBMCP-TOOLS.md`](docs/WEBMCP-TOOLS.md)
 for the full capability matrix, schemas, error contract and result envelope.
 
-MUTUA registers against `navigator.modelContext` when a WebMCP host is present,
-and falls back to a small built-in agent otherwise. The built-in agent has no
+MUTUA registers on `document.modelContext` — the WebMCP imperative API — when a
+host is present, and falls back to a small built-in agent otherwise. Tools are
+removed the way the specification prescribes: by aborting the `AbortSignal`
+handed to `registerTool`. Open it in ChatGPT's in-app browser, or Chrome 149+
+with `chrome://flags/#enable-webmcp-testing` enabled. The built-in agent has no
 privileges: it reaches the workspace only through `registry.call`, so an
 unregistered capability refuses it exactly as it would refuse an external agent.
 

@@ -121,11 +121,24 @@ freshness, state version and hard constraints.
 
 There is no `approve_proposal` tool, by design.
 
-## Talking to the registry directly
+## Calling the tools
+
+Through the standard API, in a browser with WebMCP enabled:
 
 ```js
-// In the browser console
-await __MUTUA__.call("get_workspace_state");
+const tools = await document.modelContext.getTools();
+const read = tools.find(t => t.name === "get_workspace_state");
+JSON.parse(await document.modelContext.executeTool(read, "{}"));
+```
+
+Registration uses `document.modelContext.registerTool(descriptor, { signal })`.
+Each tool carries its own `AbortController`; a phase change aborts the ones that
+no longer apply, which is how a capability actually leaves the host.
+
+MUTUA's own registry is exposed too, for inspecting the call log:
+
+```js
 __MUTUA__.registry.getRegisteredTools();
 __MUTUA__.registry.getLog();
+await __MUTUA__.call("get_workspace_state");   // same path the built-in agent uses
 ```

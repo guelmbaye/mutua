@@ -101,20 +101,50 @@ Hiding the tool is guidance. The handler enforces the rule independently: it
 re-validates approval, simulation freshness, state version and hard constraints,
 so an agent that calls it out of turn is refused rather than obeyed.
 
-## 5. With an external agent
+## 5. With a real WebMCP agent
 
-MUTUA registers its tools against `navigator.modelContext` when a WebMCP host is
-present. The header shows **Agent · WebMCP host** in that case, and **Agent ·
+MUTUA registers its tools on `document.modelContext`, the WebMCP imperative API.
+The header reads **Agent · WebMCP host** when a host is present and **Agent ·
 Built-in** otherwise.
 
-The built-in agent exists only so the demo runs anywhere. It has no privileges:
-it reaches the workspace exclusively through `registry.call`, so it is refused by
-an unregistered capability exactly like any external agent would be.
+**ChatGPT's in-app browser** supports WebMCP out of the box — open the live URL
+there and ask the agent to keep the September launch without increasing burnout.
+
+**Google Chrome 149 or later**: set `chrome://flags/#enable-webmcp-testing` to
+**Enabled** and relaunch. The
+[Model Context Tool Inspector extension](https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd)
+lists the registered tools and calls them by hand, which is the fastest way to
+watch the surface change: open it, then lock Analytics or approve a proposal and
+re-read the list.
+
+From the console, using the standard API rather than anything MUTUA-specific:
+
+```js
+(await document.modelContext.getTools()).map(t => t.name);
+
+const tools = await document.modelContext.getTools();
+const read = tools.find(t => t.name === "get_workspace_state");
+JSON.parse(await document.modelContext.executeTool(read, "{}"));
+```
+
+Before approval, `commit_proposal` is absent from that list. After you click
+**Approve**, it is there. That is the whole submission in two console lines.
+
+The built-in agent exists only so the demo runs in any browser. It has no
+privileges: it reaches the workspace exclusively through `registry.call`, so an
+unregistered capability refuses it exactly like an external agent.
+
+`tests/webmcp-host.test.ts` runs the same checks against a host that implements
+only what the specification promises — registration, AbortSignal removal, and a
+string-returning `execute`.
 
 ## 6. Known scope limits
 
 - Desktop only. Target 1440 × 900, minimum 1280 × 720. Below `lg` the side
   panels collapse; mobile is explicitly out of scope.
+- WebMCP requires an origin-isolated document. The app sends
+  `Origin-Agent-Cluster: ?1` in production and in local `next start`, so tools
+  register in both.
 - One workspace, one scenario, three simultaneous plans (Current, Proposal A,
   Proposal B) — deliberately, per the product scope.
 - State persists in LocalStorage under `mutua.workspace.v1`. **Reset demo**

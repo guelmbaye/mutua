@@ -2,12 +2,18 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 /**
- * Absolute URLs for social cards. Vercel injects VERCEL_URL on every
- * deployment; set NEXT_PUBLIC_SITE_URL once a custom domain exists.
+ * Absolute URLs for social cards.
+ *
+ * VERCEL_PROJECT_PRODUCTION_URL is the project's production domain and is set
+ * even on preview builds. VERCEL_URL is the per-deployment generated URL, which
+ * Standard Deployment Protection gates behind a Vercel login — a card pointing
+ * there returns 401 to every crawler. Set NEXT_PUBLIC_SITE_URL to override with
+ * a custom domain.
  */
+const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  (vercelHost ? `https://${vercelHost}` : "http://localhost:3000");
 
 const title = "MUTUA — Shared State for Humans and Agents";
 const description =

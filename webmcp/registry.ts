@@ -8,22 +8,53 @@ import type { ToolResult } from "./result";
 
 /* ------------------------------------------------- WebMCP host interface */
 
-interface WebMcpTool {
+/**
+ * The WebMCP imperative API, as specified by the Chrome origin trial.
+ *
+ * Registration lives on `document.modelContext`. `registerTool` is async and
+ * returns nothing useful: a tool is removed by aborting the AbortSignal handed
+ * to it at registration. `execute` receives the parsed input and a second
+ * argument carrying a `signal` for cancellation, and resolves to a string.
+ *
+ * `navigator.modelContext` is kept as a fallback for hosts that shipped the
+ * earlier draft, so MUTUA works in both without branching anywhere else.
+ */
+interface WebMcpToolDescriptor {
   name: string;
+  title?: string;
   description: string;
   inputSchema: Record<string, unknown>;
-  annotations?: Record<string, unknown>;
-  execute: (args: unknown) => Promise<{ content: { type: "text"; text: string }[] }>;
+  annotations?: {
+    readOnlyHint?: boolean;
+    destructiveHint?: boolean;
+    untrustedContentHint?: boolean;
+  };
+  execute: (args: Record<string, unknown>, context?: { signal?: AbortSignal }) => Promise<string>;
+}
+
+interface RegisterToolOptions {
+  signal?: AbortSignal;
+  exposedTo?: string[];
 }
 
 interface ModelContext {
-  registerTool?: (tool: WebMcpTool) => (() => void) | void;
-  provideContext?: (context: { tools: WebMcpTool[] }) => void;
+  registerTool?: (
+    tool: WebMcpToolDescriptor,
+    options?: RegisterToolOptions,
+  ) => Promise<unknown> | unknown;
+  /** Earlier draft: the whole tool list is pushed at once. */
+  provideContext?: (context: { tools: WebMcpToolDescriptor[] }) => void;
 }
 
 function modelContext(): ModelContext | undefined {
-  if (typeof navigator === "undefined") return undefined;
-  return (navigator as Navigator & { modelContext?: ModelContext }).modelContext;
+  if (typeof document !== "undefined") {
+    const fromDocument = (document as Document & { modelContext?: ModelContext }).modelContext;
+    if (fromDocument) return fromDocument;
+  }
+  if (typeof navigator !== "undefined") {
+    return (navigator as Navigator & { modelContext?: ModelContext }).modelContext;
+  }
+  return undefined;
 }
 
 export function isWebMcpHostAvailable(): boolean {
@@ -121,23 +152,33 @@ class WebMcpRegistry {
     const tool = toolsByName.get(name);
     if (!ctx || !tool || typeof ctx.registerTool !== "function") return undefined;
 
-    const handle = ctx.registerTool({
+    const controller = new AbortController();
+
+    const descriptor: WebMcpToolDescriptor = {
       name: tool.name,
+      title: tool.title,
       description: tool.description,
       inputSchema: tool.jsonSchema,
       annotations: {
-        title: tool.title,
         readOnlyHint: tool.annotations.readOnly,
         destructiveHint: tool.annotations.destructive,
-        requiresHumanApproval: tool.annotations.requiresHumanApproval ?? false,
+        // Everything an agent reads here is workspace state the user can see.
+        untrustedContentHint: false,
       },
-      execute: async (args: unknown) => {
-        const result = await this.call(name, args);
-        return { content: [{ type: "text" as const, text: JSON.stringify(result) }] };
+      execute: async (args) => {
+        const result = await this.call(name, args ?? {});
+        return JSON.stringify(result);
       },
+    };
+
+    // registerTool is async, but the phase transition that triggered it is not.
+    // Registering optimistically keeps the UI, the registry and the tests in
+    // step; a rejected registration simply leaves the host without the tool.
+    void Promise.resolve(ctx.registerTool(descriptor, { signal: controller.signal })).catch(() => {
+      /* the host refused the tool; the inspector still reflects our own map */
     });
 
-    return typeof handle === "function" ? handle : undefined;
+    return () => controller.abort();
   }
 
   /** Hosts that take the whole tool list at once rather than one by one. */
@@ -153,9 +194,9 @@ class WebMcpRegistry {
           name: tool.name,
           description: tool.description,
           inputSchema: tool.jsonSchema,
-          execute: async (args: unknown) => {
-            const result = await this.call(name, args);
-            return { content: [{ type: "text" as const, text: JSON.stringify(result) }] };
+          execute: async (args: Record<string, unknown>) => {
+            const result = await this.call(name, args ?? {});
+            return JSON.stringify(result);
           },
         };
       }),
